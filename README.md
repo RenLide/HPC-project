@@ -1,2 +1,2 @@
 # HPC-project
-HPC project for single
+REN's HPC project to solve Problem B
