@@ -10,20 +10,20 @@ static char help[] = "Solves a tridiagonal linear system.\n\n";
 #define K       1.0
 #define C       1.0
 #define XEND    1.0
-#define TSTEP   100
+#define TSTEP   100000
 #define TEND    2.0
 int main(int argc, char **args){
     
     
 /* ******************定义变量*********************** */
-    Vec x, uj, uj_old;
+    Vec x, uj, uj_old, f, info;
     Mat A;
     PetscErrorCode ierr;
-    PetscInt rank, START = 0, END=XEND, pos, x_start, x_end;
+    PetscInt i, rank, START = 0, END=XEND, pos, x_start, x_end, index, iter = 0;
     PetscBool r = PETSC_FALSE;
-    PetscReal CFL, dx, dt, u0, f, t = 0, t_start=0, t_end=TEND;
-    PetScalar col[3], coef[3], info[3], zero = 0.0;
-    PetViewer h5;
+    PetscReal CFL, dx, dt, u0, f0, t = 0, t_start=0, t_end=TEND;
+    PetscScalar col[3], coef[3], zero = 0.0;
+    PetscViewer h5;
 /* *********************************************** */
     
     
@@ -37,21 +37,21 @@ int main(int argc, char **args){
     
 
 /* *************计算并打印初始化变量信息*************** */
-    dx = 1.0/n;    /*计算dx&dt*/
+    dx = 1.0/GRID;    /*计算dx&dt*/
     dt = (t_end - t_start)/TSTEP;
     CFL= K*dt/(RHO*C*dx*dx);    /*计算CFL值*/
     ierr = PetscPrintf(PETSC_COMM_WORLD,"dx = %f\t",dx);CHKERRQ(ierr);    /*将dx的值打印出来，方便阅读输出文件时参考*/
     ierr = PetscPrintf(PETSC_COMM_WORLD,"dt = %f\t",dt);CHKERRQ(ierr);
     ierr = PetscPrintf(PETSC_COMM_WORLD,"CFL = %f\n",CFL);CHKERRQ(ierr);
     ierr = PetscPrintf(PETSC_COMM_WORLD, "grid = %d tstep = %d\n", GRID, TSTEP);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"restart is %d\n",restart);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"restart is %d\n",r);CHKERRQ(ierr);
 /* *********************************************** */
     
     
 /* ******************初始化参数********************* */
     ierr = VecCreate(PETSC_COMM_WORLD,&x);CHKERRQ(ierr);    /*创建一个并行空间*/
     ierr = VecCreate(PETSC_COMM_WORLD,&info);CHKERRQ(ierr);    /*创建临时向量*/
-    ierr = VecSetSizes(x,PETSC_DECIDE,n+1);CHKERRQ(ierr);    /*创建一个长度n+1的矩阵*/
+    ierr = VecSetSizes(x,PETSC_DECIDE,GRID+1);CHKERRQ(ierr);    /*创建一个长度n+1的矩阵*/
     ierr = VecSetSizes(info, 3, PETSC_DECIDE);CHKERRQ(ierr);    /*创建长度为3的临时向量*/
     ierr = VecSetFromOptions(x);CHKERRQ(ierr);    /*从选项数据库中配置向量*/
     ierr = VecSetFromOptions(info);CHKERRQ(ierr);    /*获得参数*/
@@ -62,7 +62,7 @@ int main(int argc, char **args){
     ierr = VecGetLocalSize(x,&pos);CHKERRQ(ierr);    /*设置并行x的位置点*/
 
     ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);    /*在并行空间创建一个矩阵*/
-    ierr = MatSetSizes(A,pos,pos,n+1,n+1);CHKERRQ(ierr);    /*设置矩阵的行数和列数*/
+    ierr = MatSetSizes(A,pos,pos,GRID+1,GRID+1);CHKERRQ(ierr);    /*设置矩阵的行数和列数*/
     ierr = MatSetFromOptions(A);CHKERRQ(ierr);    /*从选项数据库中配置矩阵*/
     ierr = MatSetUp(A);CHKERRQ(ierr);    /*开始建立矩阵*/
 /* *********************************************** */
@@ -70,15 +70,15 @@ int main(int argc, char **args){
     
 /* ****************初始化三对角矩阵****************** */
     coef[0] = CFL; coef[1] = 1 -2 * CFL; coef[2] = CFL;
-    for(i = START + 1; i < END; i++){
+    for(int i = START + 1; i < END; i++){
         col[0] = i - 1; col[1] = i; col[2] = i + 1;
         ierr = MatSetValues(A,1,&i,3,col,coef,INSERT_VALUES);CHKERRQ(ierr);
     }
-    
+    i = START;
     col[0] = 0; col[1] = 1;
     coef[0] = 1 - 2 * CFL; coef[1] = CFL;
     ierr = MatSetValues(A,1,&i,2,col,coef,INSERT_VALUES);CHKERRQ(ierr);
-    
+    i = END;
     col[0] = END - 1; col[1] = END;
     coef[0] = 1 - 2 * CFL; coef[1] = CFL;
     ierr = MatSetValues(A,1,&i,2,col,coef,INSERT_VALUES);CHKERRQ(ierr);
@@ -116,11 +116,11 @@ int main(int argc, char **args){
         ierr = VecGetValues(info,1,&index,&t);CHKERRQ(ierr);    /*将第三个值赋给t*/
         index= 0;    /*索引复位*/
     }
-    ierr = VecSet(b,zero);CHKERRQ(ierr);    /*设置初始向量b*/
+    ierr = VecSet(f, zero);CHKERRQ(ierr);    /*设置初始向量b*/
     if(rank == 0){    /*开始设置初始条件*/
       for(int i = 1; i < END; i++){    /*除首尾两个点外的其余点*/
-        f = dt*sin(i*dx*PI);    /*根据当前位置来获取传热值*/
-        ierr = VecSetValues(b, 1, &i, &f, INSERT_VALUES);CHKERRQ(ierr);    /*将向量的对应位置的值进行修改*/
+        f0 = dt*sin(i*dx*PI);    /*根据当前位置来获取传热值*/
+        ierr = VecSetValues(f, 1, &i, &f0, INSERT_VALUES);CHKERRQ(ierr);    /*将向量的对应位置的值进行修改*/
       }
     }
     ierr = VecAssemblyBegin(f);CHKERRQ(ierr);    /*通知其余并行块将向量统一*/
@@ -140,24 +140,35 @@ int main(int argc, char **args){
 
        iter += 1;    /*记录迭代次数*/
        if((iter % 10) == 0){    /*如果迭代次数为10的倍数，即每迭代十次*/
-       
-        info[0] = dx; info[1] = dt; info[2] = t;    /*将值赋给数组*/
-        ierr = VecSet(info, 0.0);CHKERRQ(ierr);    /*初始化矩阵*/
-        for(index=0;index<3;index++){    /*循环遍历数组，并将值赋给向量*/
-          u0 = data[index];    /*将数组的值赋给u0*/
-          ierr = VecSetValues(tem,1,&index,&u0,INSERT_VALUES);CHKERRQ(ierr);    /*将矩阵赋值给向量*/
-        }
-        ierr = VecAssemblyBegin(tem);CHKERRQ(ierr);    /*通知其余并行块将向量统一*/
-        ierr = VecAssemblyEnd(tem);CHKERRQ(ierr);    /*结束通知*/
+            index = 0;
+            ierr = VecSetValues(info,1,&index,&dx,INSERT_VALUES);CHKERRQ(ierr);
+            index += 1;
+            ierr = VecSetValues(info,1,&index,&dt,INSERT_VALUES);CHKERRQ(ierr);
+            index += 1;
+            ierr = VecSetValues(info,1,&index,&t,INSERT_VALUES);CHKERRQ(ierr);
+        
+            ierr = VecAssemblyBegin(info);CHKERRQ(ierr);    /*通知其余并行块将向量统一*/
+            ierr = VecAssemblyEnd(info);CHKERRQ(ierr);    /*结束通知*/
 
-        ierr = PetscViewerCreate(PETSC_COMM_WORLD,&h5);CHKERRQ(ierr);    /*创建输出指针*/
-        ierr = PetscViewerHDF5Open(PETSC_COMM_WORLD,"explicit.h5", FILE_MODE_WRITE, &h5);CHKERRQ(ierr);    /*创建输出文件*/
-        ierr = PetscObjectSetName((PetscObject) z, "explicit-vector");CHKERRQ(ierr);    /*将z输出的名字命名为explicit-vector*/
-        ierr = PetscObjectSetName((PetscObject) tem, "explicit-necess-data");CHKERRQ(ierr);    /*将tem输出的名字命名为explicit-necess-data*/
-        ierr = VecView(tem, h5);CHKERRQ(ierr);    /*tem输出到文件*/
-        ierr = VecView(z, h5);CHKERRQ(ierr);    /*z输出到文件*/
-        ierr = PetscViewerDestroy(&h5);CHKERRQ(ierr);    /*关闭输出*/
+            ierr = PetscViewerCreate(PETSC_COMM_WORLD,&h5);CHKERRQ(ierr);    /*创建输出指针*/
+            ierr = PetscViewerHDF5Open(PETSC_COMM_WORLD,"explicit.h5", FILE_MODE_WRITE, &h5);CHKERRQ(ierr);    /*创建输出文件*/
+            ierr = PetscObjectSetName((PetscObject) uj, "uj");CHKERRQ(ierr);    /*将z输出的名字命名为explicit-vector*/
+            ierr = PetscObjectSetName((PetscObject) info, "info");CHKERRQ(ierr);    /*将tem输出的名字命名为explicit-necess-data*/
+            ierr = VecView(info, h5);CHKERRQ(ierr);    /*tem输出到文件*/
+            ierr = VecView(uj, h5);CHKERRQ(ierr);    /*z输出到文件*/
+            ierr = PetscViewerDestroy(&h5);CHKERRQ(ierr);    /*关闭输出*/
        }
     }
 /* *********************************************** */
+ierr = VecView(uj,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);    /*打印向量，获得结束时显式方法的值*/
+
+ierr = VecDestroy(&x);CHKERRQ(ierr);
+ierr = VecDestroy(&info);CHKERRQ(ierr);    /*关闭临时向量*/
+ierr = VecDestroy(&uj);CHKERRQ(ierr);    /*关闭向量x*/
+ierr = VecDestroy(&uj_old);CHKERRQ(ierr);    /*关闭向量z*/
+ierr = VecDestroy(&f);CHKERRQ(ierr);    /*关闭向量b*/
+ierr = MatDestroy(&A);CHKERRQ(ierr);    /*关闭矩阵A*/
+
+ierr = PetscFinalize();    /*结束并行*/
+return ierr;    /*程序结束*/
 }
