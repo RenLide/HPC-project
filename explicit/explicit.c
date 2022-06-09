@@ -78,7 +78,8 @@ int main(int argc, char **args){
 /* ******三对角参数分别为 CFL 1-2.0*CFL CFL ************ */
     if (!START){    // 处理首行
       i = 0; col[0] = 0; col[1] = 1; coef[0] = 1-2.0*CFL; coef[1] = CFL;
-      ierr   = MatSetValues(A,1,&i,2,col,coef,INSERT_VALUES);CHKERRQ(ierr);    }
+      ierr   = MatSetValues(A,1,&i,2,col,coef,INSERT_VALUES);CHKERRQ(ierr);
+    }
     
     if (END == GRID+1){    // 处理尾行
       END = GRID;
@@ -155,7 +156,6 @@ int main(int argc, char **args){
             index += 1;
             ierr = VecSetValues(info,1,&index,&t,INSERT_VALUES);CHKERRQ(ierr);
             index=0;
-           
             ierr = VecAssemblyBegin(info);CHKERRQ(ierr);
             ierr = VecAssemblyEnd(info);CHKERRQ(ierr);
 
