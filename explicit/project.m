@@ -1,4 +1,4 @@
-x = linspace(0,1,100);
+x = linspace(0,1,101);
 x = x';
 y = [
 0.
@@ -100,9 +100,11 @@ inf
 -inf
 inf
 -inf
+inf
 0.
 ];
 y1=[
+0.
 0.
 0.0089785
 0.0121561
@@ -212,5 +214,5 @@ exdata(:,2) = y;
 
 imdata(:,1) = x;
 imdata(:,2) = y1;
-writematrix(exdata,'explicit_CFL0.5.dat');
-writematrix(imdata,'implicit_CFL10.0.dat');
+writematrix(exdata,'explicit_CFL0.4.dat');
+writematrix(imdata,'implicit_CFL0.4.dat');

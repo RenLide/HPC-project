@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999994 (TeX Live 2022) (preloaded format=xelatex 2022.6.9)  9 JUN 2022 22:44
+This is XeTeX, Version 3.141592653-2.6-0.999994 (TeX Live 2022) (preloaded format=xelatex 2022.6.9)  9 JUN 2022 23:30
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -575,7 +575,14 @@ LaTeX Font Info:    No file TUptm.fd. on input line 56.
 LaTeX Font Warning: Font shape `TU/ptm/m/n' undefined
 (Font)              using `TU/lmr/m/n' instead on input line 56.
 
-(./SaliencyCN.aux)
+(./SaliencyCN.aux
+
+LaTeX Warning: Label `figure' multiply defined.
+
+
+LaTeX Warning: Label `figure' multiply defined.
+
+)
 \openout1 = `SaliencyCN.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 56.
@@ -706,83 +713,27 @@ LaTeX Font Warning: Font shape `TU/ptm/m/it' undefined
 ]
 File: ./figures/solution_CFL0.2.png Graphic file (type bmp)
 <./figures/solution_CFL0.2.png>
-
-
-LaTeX Warning: Reference `fig:HCSmoothing' on page 410 undefined on input line 
-307.
-
-
-LaTeX Warning: Reference `fig:plots' on page 410 undefined on input line 309.
-
-[410] [411]
-
-LaTeX Warning: Reference `fig:plots' on page 412 undefined on input line 416.
-
-
-LaTeX Warning: Reference `fig:cmp1vAll' on page 412 undefined on input line 418
-.
-
-
-LaTeX Warning: Reference `fig:VisualComparison' on page 412 undefined on input 
-line 419.
-
-
-LaTeX Warning: Reference `fig:AttCutSteps' on page 412 undefined on input line 
-444.
-
-[412]
-
-LaTeX Warning: Reference `fig:AttCutSteps' on page 413 undefined on input line 
-453.
-
-
-LaTeX Warning: Reference `fig:AttCutSteps' on page 413 undefined on input line 
-462.
-
-
-LaTeX Warning: Reference `fig:plots' on page 413 undefined on input line 465.
-
-
-LaTeX Warning: Reference `fig:plots' on page 413 undefined on input line 475.
-
-
-LaTeX Warning: Reference `fig:cutCmp' on page 413 undefined on input line 475.
-
-
-LaTeX Warning: Reference `fig:Resizing' on page 413 undefined on input line 493
-.
-
-
-LaTeX Warning: Reference `fig:NPR' on page 413 undefined on input line 506.
-
-[413] (./SaliencyCN.bbl (./SaliencyCN.brf)
-\tf@brf=\write3
-\openout3 = `SaliencyCN.brf'.
-
- [414]) [415
+File: ./figures/solution_CFL0.4.png Graphic file (type bmp)
+<./figures/solution_CFL0.4.png>
+File: ./figures/solution_CFL_over05.png Graphic file (type bmp)
+<./figures/solution_CFL_over05.png>
+ [410] [411
 
 ] (./SaliencyCN.aux)
 
 LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
 
-LaTeX Warning: There were undefined references.
+LaTeX Warning: There were multiply-defined labels.
 
-
-Package rerunfilecheck Warning: File `SaliencyCN.brf' has changed.
-(rerunfilecheck)                Rerun to get bibliographical references right.
-
-Package rerunfilecheck Info: Checksums for `SaliencyCN.brf':
-(rerunfilecheck)             Before: 58FE137DC41322C439CDD604FFF347C0;2262
-(rerunfilecheck)             After:  113502ACBB3824D16036F9A9D3376C80;2262.
  ) 
 Here is how much of TeX's memory you used:
- 16577 strings out of 476179
- 354956 string characters out of 5809545
- 720738 words of memory out of 5000000
- 37049 multiletter control sequences out of 15000+600000
- 484819 words of font info for 108 fonts, out of 8000000 for 9000
+ 16372 strings out of 476179
+ 347016 string characters out of 5809545
+ 720317 words of memory out of 5000000
+ 36854 multiletter control sequences out of 15000+600000
+ 481700 words of font info for 94 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
- 89i,9n,97p,503b,519s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 89i,9n,97p,503b,341s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
-Output written on SaliencyCN.pdf (7 pages).
+Output written on SaliencyCN.pdf (3 pages).
